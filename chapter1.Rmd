@@ -1,4 +1,7 @@
 
 # About the project
 
-*Write a short description about the course and add a link to your GitHub repository here. This is an R Markdown (.Rmd) file so you can use R Markdown syntax.*
+# Github page
+https://github.com/VilleAR/IODS-project
+
+Excited to learn but also anxious since I started when the course was halfway done! Just trying to do my best.
