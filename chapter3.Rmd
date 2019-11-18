@@ -3,5 +3,12 @@ alc<-read.csv("alc.csv")
 
 names(alc)
 
-<i>Dataset that has combined alcohol use data from math students and Portugese students and divided them into high use and low use. I started the course this week so I'm very low on time (<1hr at the time of writing this)</i>
+#<i><br>Dataset that has combined alcohol use data from math students and Portugese students and divided them into high use and low use. I started the course this week so I'm very low on time!! </br> <br>Age is an obvious factor as students below 18 years old are (hopefully) much less likely to drink. Students with higher free time are more likely to have time to drink, but might not have enough money. Exploring possible links between high alcohol use and failures could also be enlightening. Lastly, students that get paid will have more money to drink but might have less free time due to working, so it's hard to say how it affects alcohol consumption. </i> </br>
 
+g2<-ggplot(data=alc, aes(x=high_use))
+g2+facet_wrap("age")+geom_bar()
+g2+facet_wrap("freetime")+geom_bar()
+g2+facet_wrap("failures")+geom_bar()
+g2+facet_wrap("paid")+geom_bar()
+
+#<i> Failures seem to have no correlation with high alcohol use. 17-year olds seemed to be the heaviest drinkers which is a little concerning but not very surprising, and free time did indeed heavily correlate with heavy drinking, while getting paid did to a much lesser degree. It's now almost midnight so I have to turn in the assignment. </i>
