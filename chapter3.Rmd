@@ -1,0 +1,7 @@
+# Chapter 3
+alc<-read.csv("alc.csv")
+
+names(alc)
+
+<i>Dataset that has combined alcohol use data from math students and Portugese students and divided them into high use and low use. I started the course this week so I'm very low on time (<1hr at the time of writing this)</i>
+
