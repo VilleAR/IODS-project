@@ -1,0 +1,69 @@
+# Chapter 4
+```{r Boston}
+library(MASS); library(tidyr); library(dplyr); library(ggplot2); library(corrplot)
+data("Boston")
+str(Boston)
+dim(Boston)
+```
+<i> Boston is a dataset containing information about the housing situation of Boston, including things like crime rates, accessibility to highways and median value of occupied homes. </i>
+
+
+```{r B1}
+pairs(Boston)
+cor_matrix<-cor(Boston)
+corrplot(cor_matrix, method="square", type="upper", cl.pos="b", tl.pos="d")
+```
+<i> It looks like age corresponds strongly with living in more industrial areas, which of course have significantly more nitrogen oxide in the air. Correlation between lstat and rm also imply that lower status people are more likely to live in dwellings with more rooms, which is backed by a strong negative correlation between dwellings with lots of rooms and median value of owner-occupied homes. </i>
+
+```{r B2}
+boston_scaled <- scale(Boston)
+summary(boston_scaled)
+#The values are now between -10 and 10, and all the mean values are 0, as per the scaling function.
+boston_scaled<- as.data.frame(boston_scaled)
+bins<-quantile(boston_scaled$crim)
+bb<-c("low", "med_low", "med_high", "high")
+crime <- cut(boston_scaled$crim, breaks = bins, include.lowest = TRUE, label=bb)
+#table(crime)
+boston_scaled <- dplyr::select(boston_scaled, -crim)
+boston_scaled <- data.frame(boston_scaled, crime)
+n<-nrow(boston_scaled)
+ind<-sample(n, size=n*0.8)
+train<-boston_scaled[ind,]
+test<-boston_scaled[-ind,]
+correct_classes <- test$crime
+test <- dplyr::select(test, -crime)
+lda.fit <- lda(crime~., data = train)
+#lda.fit
+classes <- as.numeric(train$crime)
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+plot(lda.fit, dimen = 2, col=classes, pch=classes)
+#For some reason the data is reversed on the x-axis compared to the datacamp plot, I went through the whole code and couldn't find why
+#lda.arrows(lda.fit, myscale = 10) // commented to reduce knitting time
+lda.pred <- predict(lda.fit, newdata = test)
+table(correct = correct_classes, predicted = lda.pred$class)
+```
+<i>As we can see, the predict function was quite good at predicting crime rates overall, particularly high crime rates. This would imply that high crime rates exhibit a certain tell that the LDA uses to predict with high accuracy. The low, med_low and med_high categories seem to be quite easily separated from the high-category.
+</i>
+``` {r B3}
+data("Boston")
+bos<-scale(Boston)
+#Euclidean and Manhattan distance
+dist_eu<-dist(bos)
+dist_man<-dist(bos, method="manhattan")
+km<-kmeans(bos, centers=3)
+pairs(bos, col=km$cluster)
+set.seed(123)
+k_max<-2
+twcss<-sapply(1:k_max, function(k){kmeans(bos, k)$tot.withinss})
+qplot(x = 1:k_max, y = twcss, geom = 'line')
+km <-kmeans(bos, centers = 2)
+pairs(bos, col = km$cluster)
+```
+<i> 2 clusters seems to be what brings most change, making it the optimal number. This graph has grouped the data in the scaled bos-table into 2 clusters, and then maps that data according to the stated categories. It appears to have divided dwellings largely based on whether they're in an industrial area (with a high nitrogen oxide concentration) or not, and so we can use the graph to figure out what things correspond or don't correspond with living in an industrial area, like for example that people living in those areas generally have a lower tax rate. Unfortunately I can't select specific columns to look at more closely for some reason, so that's about all I can gather from the tiny images. </i>
