@@ -60,7 +60,7 @@ dist_man<-dist(bos, method="manhattan")
 km<-kmeans(bos, centers=3)
 pairs(bos, col=km$cluster)
 set.seed(123)
-k_max<-2
+k_max<-10
 twcss<-sapply(1:k_max, function(k){kmeans(bos, k)$tot.withinss})
 qplot(x = 1:k_max, y = twcss, geom = 'line')
 km <-kmeans(bos, centers = 2)

@@ -1,0 +1,63 @@
+# Chapter 5
+```{r B}
+library(tidyr); library(dplyr); library(ggplot2); library(corrplot); library(GGally); 
+human<-read.csv(file="Human.csv", header=T, sep=",")
+dim(human)
+rownames(human)<-human$X
+human<-dplyr::select(human, -X)
+```
+<i>For some reason it gives me the names as a column again, so they have to be removed again for ggpairs to work.</i>
+
+```{r 1}
+ggpairs(human)
+cor(human)%>%corrplot()
+```
+<i> The data represents basic human development metrics such as life expectancy and average education, and shows relationships between these variables. The plots show us, among other things, that countries with many adolescent births also have significantly higher maternal mortality rates and lower life expectancies, and that countries where women receive more similar levels of education to men generally have better education as a whole and don't have as many adolescent births. The better educated countries with higher life expectancies also have higher GNIs per capita, which can probably be expected.</i>
+```{r 2}
+pca_human<-prcomp(human)
+pca_human
+biplot(pca_human, choices=1:2, cex=c(0.8, 1), col=c("grey40", "deeppink2"))
+s <- summary(pca_human)
+pca_pr <- round(100*s$importance[2, ], digits = 1)
+pca_pr
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+biplot(pca_human, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
+
+#The graph seems to use GNI per capita as a reversed and the y-axis appears to be a mix of the other categories. I think it's having trouble misinterpreting numbers with for example high maternal mortality rate being bad but high education ratio being good, which is why the y-axis seems a little nonsensical. 
+human_std<-scale(human)
+summary(human_std)
+pca_human2<-prcomp(human_std)
+biplot(pca_human2, choices=1:2, cex=c(0.8, 1), col=c("grey40", "deeppink2"))
+s2<-summary(pca_human2)
+pca_pr2 <- round(100*s2$importance[2, ], digits = 1)
+pc_lab2 <- paste0(names(pca_pr2), " (", pca_pr2, "%)")
+biplot(pca_human2, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab2[1], ylab = pc_lab2[2])
+```
+<i>This result is much more interpretable and shows clear correlations between life expectancy, education and GNI, female representation in parliament and employment rate between genders and between adolescent birth rate and maternal mortality rate. The last group is almost directly opposite the first, meaning that they correlate inversely with each other, but the 2nd group is orthogonal to the other two, meaning that they have no correlation. Knowing this we can easily choose 2 principal components to represent the data.
+
+
+The results between the 2 graphs are different because it assumes that variables with larger variance are more important than those with small variance, so scaling the data is necessary to prevent a few categories from dominating the results.
+
+Since life expectancy correlates strongly with education and gross national income and inversely with adolescent birth rates and maternal mortality ratios, we can use it as the first PC. Employment rate between genders and female representation in parliament don't correlate all that strongly, but they're both quite orthogonal to the other variables as well, so I'd choose one of them for the second PC
+</i>
+
+```{r 3}
+library(FactoMineR)
+data("tea")
+str(tea)
+dim(tea)
+gather(tea)%>%ggplot(aes(value))+facet_wrap("key", scales="free") + geom_bar()
+keep_columns <- c("Tea", "How", "how", "sugar", "where", "lunch")
+tea_time <- dplyr::select(tea, one_of(keep_columns))
+mca <- MCA(tea_time, graph = F)
+summary(mca)
+plot(mca, invisible=c("ind"), habillage="quali")
+plot(mca, invisible=c("ind"), habillage="cos2")
+
+```
+
+
+<i> From the graph we can see that tea shops often serve their tea unpackaged, while chain stores tend to use tea bags, and tea shop+chain store combinations do both. Green tea drinkers don't seem to have any other constant preferences, since green tea is not near any other variables. A lot of the most common variables such as sugar, no sugar, earl grey and not lunch are near each other, showing that they tend to appeal to the average user in a similar way. The 'other' category is also very lonely, meaning that drinkers of that kind are quite unusual compared to the average tea enthusiasts, though the sample size might be too low to say anything definitive. </i>
+
+
+
