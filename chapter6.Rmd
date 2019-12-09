@@ -92,4 +92,12 @@ anova(fit)
 
 #The t-test implicates a clear difference between groups 1 and 2 ( as we already knew), with a mean difference most likely between -204 and -170. 
 ```
-<i> Next we will be looking at the BPRS data according to Chapter 9. </i>
+<i> Next we will be looking at the BPRS data according to Chapter 9, which has already been converted to longform and inspected at the beginning of the chapter. </i>
+```{r 3}
+
+
+
+
+
+
+```
