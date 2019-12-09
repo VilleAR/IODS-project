@@ -1,0 +1,95 @@
+# Chapter 6
+```{r B}
+library(dplyr); library(ggplot2); library(tidyr)
+RATS<-read.csv(file="RATS.csv", header=T, sep=",")
+BPRSL<-read.csv(file="BPRSL.csv", header=T, sep=",")
+rownames(BPRSL)<-BPRSL$X
+BPRSL<-dplyr::select(BPRSL, -X)
+RATSL<-read.csv(file="RATSL.csv", header=T, sep=",")
+rownames(RATSL)<-RATSL$X
+RATSL<-dplyr::select(RATSL, -X)
+BPRSL$treatment <- factor(BPRSL$treatment)
+BPRSL$subject <- factor(BPRSL$subject)
+RATSL$ID<-factor(RATSL$ID)
+RATSL$Group<-factor(RATSL$Group)
+```
+<i> We begin by analyzing the RATS-data in long form </i>
+```{r 0}
+
+glimpse(RATSL)
+ggplot(RATSL, aes(x = Time, y = Weight, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(min(RATSL$Weight), max(RATSL$Weight)))
+#This plot shows us that groups 2 and 3 have seen an increase in weight on average, while the rats in group 1 grew noticeably less. All the rats in these two groups started growing significantly faster around day 43-44, and their growth had either stagnated or started regressing before then.
+```
+<i>Next we will standardise the values to highlight how rats that started out bigger will generally be bigger than the others throughout the study.</i>
+``` {r 1}
+
+RATSL<-RATSL%>%
+  group_by(Time) %>%
+  mutate(stdweight = (Weight-mean(Weight))/sd(Weight))%>%
+  ungroup()
+glimpse(RATSL)
+ggplot(RATSL, aes(x = Time, y = stdweight, linetype = ID)) +
+  geom_line() +
+  scale_linetype_manual(values = rep(1:10, times=4)) +
+  facet_grid(. ~ Group, labeller = label_both) +
+  scale_y_continuous(name="standardized Weights")
+#The standardized graph gives us a different perspective, and shows that the 3 groups are very similar after standardization, implying that the treatments administered would all have similar effects. 
+#Next, we are going to plot a summary graph to see the averages of each group of rats.
+n <- RATSL$Time %>% unique() %>% length()
+RATSS<-RATSL%>%
+  group_by(Group, Time)%>%
+  summarise(mean =mean(Weight), se=sd(Weight)/sqrt(n))%>%
+    ungroup()
+glimpse(RATSS)
+ggplot(RATSS, aes(x = Time, y = mean, linetype = Group, shape = Group)) +
+  geom_line() +
+  scale_linetype_manual(values = c(1,2, 3)) +
+  geom_point(size=3) +
+  scale_shape_manual(values = c(1,2, 3)) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, linetype="1"), width=0.3) +
+  theme(legend.position = c(0.8,0.8)) +
+  scale_y_continuous(name = "mean(Weight) +/- se(Weight)")
+
+#The summary graph in this case doesn't tell us anything we didn't already know, because the sample size was small enough that the first graphs suited us fine. The summary graph would be more useful if we had hundreds of rats that made it impossible to make out anything useful from their graphs.
+
+#Next, we will find and exclude an outlier and look at the data without it.
+
+RATSL8S<-RATSL%>%
+  filter(Time>1)%>%
+  group_by(Group, ID)%>%
+  summarise(mean=mean(Weight))%>%
+  ungroup()
+glimpse(RATSL8S)
+ggplot(RATSL8S, aes(x=Group, y=mean))+
+  geom_boxplot()+
+  stat_summary(fun.y = "mean", geom = "point", shape=23, size=4, fill = "white") +
+  scale_y_continuous(name = "mean(Weight), time after first day")
+#The outlier is almost at 600
+RATSL8S1<-RATSL8S%>%
+  filter(mean<580)
+#Graph after filtering the outlier:
+ggplot(RATSL8S1, aes(x=Group, y=mean))+
+  geom_boxplot()+
+  stat_summary(fun.y = "mean", geom = "point", shape=23, size=4, fill = "white") +
+  scale_y_continuous(name = "mean(Weight), time after first day")
+#This has excluded some of the biggest values, though the necessity of this action was questionable since there wasn't really one single value that was well above any other, but rather a few values above 580 that were further apart from each other than the rest.
+```
+<i>Now we are going to perform a two-sample t-test to get an accurate assesment of how the groups develop. Since our data has 3 samples, we have to exclude one. </i>
+```{r 2}
+tgroup1<-RATSL8S1%>%
+  filter(mean<460)
+#Group 3 has all the biggest rats, so we can limit groups to 2 by limiting mean to a certain number, in this case 460. Groups 2 and 3 looked very similar, which is why 1 and 2 were chosen for the t-test.
+t.test(mean ~ Group, data = tgroup1, var.equal = TRUE)
+tgroup2<-RATSL8S%>%
+  mutate(baseline=RATS$WD1)
+fit<-lm(mean~baseline+Group, data=tgroup2)
+anova(fit)
+
+#The t-test implicates a clear difference between groups 1 and 2 ( as we already knew), with a mean difference most likely between -204 and -170. 
+```
+<i> Next we will be looking at the BPRS data according to Chapter 9. </i>
