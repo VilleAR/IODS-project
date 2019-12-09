@@ -1,5 +1,5 @@
 # Chapter 6
-```{r B}
+```{r B2341}
 library(dplyr); library(ggplot2); library(tidyr)
 RATS<-read.csv(file="RATS.csv", header=T, sep=",")
 BPRSL<-read.csv(file="BPRSL.csv", header=T, sep=",")
@@ -14,7 +14,7 @@ RATSL$ID<-factor(RATSL$ID)
 RATSL$Group<-factor(RATSL$Group)
 ```
 <i> We begin by analyzing the RATS-data in long form </i>
-```{r 0}
+```{r 01}
 
 glimpse(RATSL)
 ggplot(RATSL, aes(x = Time, y = Weight, linetype = ID)) +
@@ -26,7 +26,7 @@ ggplot(RATSL, aes(x = Time, y = Weight, linetype = ID)) +
 #This plot shows us that groups 2 and 3 have seen an increase in weight on average, while the rats in group 1 grew noticeably less. All the rats in these two groups started growing significantly faster around day 43-44, and their growth had either stagnated or started regressing before then.
 ```
 <i>Next we will standardise the values to highlight how rats that started out bigger will generally be bigger than the others throughout the study.</i>
-``` {r 1}
+``` {r 11}
 
 RATSL<-RATSL%>%
   group_by(Time) %>%
@@ -80,7 +80,7 @@ ggplot(RATSL8S1, aes(x=Group, y=mean))+
 #This has excluded some of the biggest values, though the necessity of this action was questionable since there wasn't really one single value that was well above any other, but rather a few values above 580 that were further apart from each other than the rest.
 ```
 <i>Now we are going to perform a two-sample t-test to get an accurate assesment of how the groups develop. Since our data has 3 samples, we have to exclude one. </i>
-```{r 2}
+```{r 21}
 tgroup1<-RATSL8S1%>%
   filter(mean<460)
 #Group 3 has all the biggest rats, so we can limit groups to 2 by limiting mean to a certain number, in this case 460. Groups 2 and 3 looked very similar, which is why 1 and 2 were chosen for the t-test.
@@ -93,8 +93,9 @@ anova(fit)
 #The t-test implicates a clear difference between groups 1 and 2 ( as we already knew), with a mean difference most likely between -204 and -170. 
 ```
 <i> Next we will be looking at the BPRS data according to Chapter 9, which has already been converted to longform and inspected at the beginning of the chapter. </i>
-```{r 3}
-
+```{r 31}
+ggplot(BPRSL, aes(x = week, y = bprs, group = subject)) +
+  geom_line()
 
 
 
