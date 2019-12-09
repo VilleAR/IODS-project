@@ -102,5 +102,6 @@ ggplot(BPRSL, aes(x = week, y = bprs, group = subject)) +
 #We can see an overall decrease in bprs, but not much else. Let's look at a multiple linear regression model with bprs as response.
 BPRS_reg<-lm(bprs~week+treatment, data=BPRSL)
 summary(BPRS_reg)
+#Because this model assumes independence of the repeated measures of bprs, it's quite suboptimal for our purposes. A better model would be the random intercept model.
 #Unfortunately due to running into a lot of difficulties with knitting, I didn't have enough time to go any further.
 ```
